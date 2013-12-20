@@ -1,0 +1,5 @@
+name = CTools Custom Link
+description = Contains a CTools plugin that allows to add custom links to pages inside panels.
+core = 7.x
+version = 7.x-1.0
+dependencies[] = ctools
