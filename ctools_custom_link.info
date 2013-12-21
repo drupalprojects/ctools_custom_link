@@ -3,3 +3,4 @@ description = Contains a CTools plugin that allows to add custom links to pages 
 core = 7.x
 version = 7.x-1.0
 dependencies[] = ctools
+package = Chaos tool suite
