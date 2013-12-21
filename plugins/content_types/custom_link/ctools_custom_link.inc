@@ -39,9 +39,13 @@ $plugin = array(
 function ctools_custom_link_render($subtype, $conf, $args, $contexts) {
   $block = new stdClass();
 
+  // Make sure url and text is set, if was called through ctools_content_render.
+  $url = !isset($conf['url']) ? '<front>' : $conf['url'];
+  $text = !isset($conf['text']) ? 'Link text was not set' : $conf['text'];
+
   // First replace tokens.
-  $url = token_replace($conf['url']);
-  $text = token_replace($conf['text']);
+  $url = token_replace($url);
+  $text = token_replace($text);
 
   // Then replace keyword substitutions if we were configured to do so.
   if (!empty($contexts) && !empty($conf['substitute'])) {
