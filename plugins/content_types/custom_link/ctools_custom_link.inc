@@ -86,7 +86,7 @@ function ctools_custom_link_render($subtype, $conf, $args, $contexts) {
   }
 
   // Render the link.
-  $options += drupal_parse_url($url);
+  $options += ctools_custom_link_parse_url($url);
   $link = l(t($text), $options['path'], $options);
 
   $block->title = '';
@@ -315,4 +315,69 @@ function ctools_custom_link_extract_allowed_values($string, $field_type, $genera
   }
 
   return $values;
+}
+
+/**
+ * Parses a URL string into an associative array suitable for url().
+ *
+ * Copy-pasted from includes/common.inc, and removed the last lines regarding the 'q' parameter
+ * so that external urls containing q are parsed properly (e.g. google.com?q=hi).
+ *
+ * This is required, because url() does not support relative URLs containing a
+ * query string or fragment in its $path argument. Instead, any query string
+ * needs to be parsed into an associative query parameter array in
+ * $options['query'] and the fragment into $options['fragment'].
+ *
+ * @param $url
+ *   The URL string to parse, f.e. $_GET['destination'].
+ *
+ * @return
+ *   An associative array containing the keys:
+ *   - 'path': The path of the URL. If the given $url is external, this includes
+ *     the scheme and host.
+ *   - 'query': An array of query parameters of $url, if existent.
+ *   - 'fragment': The fragment of $url, if existent.
+ *
+ * @see url()
+ * @ingroup php_wrappers
+ */
+function ctools_custom_link_parse_url($url) {
+  $options = array(
+    'path' => NULL,
+    'query' => array(),
+    'fragment' => '',
+  );
+
+  // External URLs: not using parse_url() here, so we do not have to rebuild
+  // the scheme, host, and path without having any use for it.
+  if (strpos($url, '://') !== FALSE) {
+    // Split off everything before the query string into 'path'.
+    $parts = explode('?', $url);
+    $options['path'] = $parts[0];
+    // If there is a query string, transform it into keyed query parameters.
+    if (isset($parts[1])) {
+      $query_parts = explode('#', $parts[1]);
+      parse_str($query_parts[0], $options['query']);
+      // Take over the fragment, if there is any.
+      if (isset($query_parts[1])) {
+        $options['fragment'] = $query_parts[1];
+      }
+    }
+  }
+  // Internal URLs.
+  else {
+    // parse_url() does not support relative URLs, so make it absolute. E.g. the
+    // relative URL "foo/bar:1" isn't properly parsed.
+    $parts = parse_url('http://example.com/' . $url);
+    // Strip the leading slash that was just added.
+    $options['path'] = substr($parts['path'], 1);
+    if (isset($parts['query'])) {
+      parse_str($parts['query'], $options['query']);
+    }
+    if (isset($parts['fragment'])) {
+      $options['fragment'] = $parts['fragment'];
+    }
+  }
+
+  return $options;
 }
