@@ -86,7 +86,8 @@ function ctools_custom_link_render($subtype, $conf, $args, $contexts) {
   }
 
   // Render the link.
-  $link = l(t($text), $url, $options);
+  $options += drupal_parse_url($url);
+  $link = l(t($text), $options['path'], $options);
 
   $block->title = '';
   $block->content = $link;
